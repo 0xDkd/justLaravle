@@ -27,6 +27,8 @@
                     </div>
                     {{csrf_field()}}
                     <button type="submit" class="btn btn-success">注册</button>
+                    <hr>
+                    已经有账号啦？快去<a href="{{ route('login') }}">登录</a>
                 </form>
             </div>
         </div>
