@@ -18,12 +18,13 @@ $factory->define(App\Models\User::class, function (Faker $faker) {
     static $password;
 
     return [
-        'name' => $faker->name,
-        'email' => $faker->safeEmail,
-        'is_admin' => false,
-        'password' => $password ?: $password = bcrypt('secret'),
+        'name'           => $faker->name,
+        'email'          => $faker->safeEmail,
+        'is_admin'       => false,
+        'activated'      => true,
+        'password'       => $password ?: $password = bcrypt('secret'),
         'remember_token' => str_random(10),
-        'created_at' => $date_time,
-        'updated_at' => $date_time,
+        'created_at'     => $date_time,
+        'updated_at'     => $date_time,
     ];
 });
