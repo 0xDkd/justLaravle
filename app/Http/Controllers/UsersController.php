@@ -75,4 +75,13 @@ class UsersController extends Controller
         session()->flash('success','信息修成功～');
         return redirect()->route('users.edit',$user->id);
     }
+
+    public function destroy(User $user)
+    {
+        $this->authorize('destroy', $user);
+        $user->delete();
+        session()->flash('success', '成功删除用户！');
+        return back();
+    }
+
 }
