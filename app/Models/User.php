@@ -50,4 +50,19 @@ class User extends Authenticatable
         $this->notify(new ResetPassword($token));
     }
 
+    /**
+     * @desc    一个用户有多个微博
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function statuses()
+    {
+        return $this->hasMany(Status::class);
+    }
+
+    public function feed()
+    {
+        return $this->statuses()
+                    ->orderBy('created_at','desc');
+    }
+
 }

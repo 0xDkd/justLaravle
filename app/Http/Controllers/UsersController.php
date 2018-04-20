@@ -14,16 +14,17 @@ class UsersController extends Controller
     public function __construct()
     {
         $this->middleware('auth', [
-            'except' => ['show', 'create', 'store','confirmEmail']
+            'except' => ['show', 'create', 'store', 'confirmEmail']
         ]);
-        $this->middleware('guest',[
-            'only'=>'create'
+        $this->middleware('guest', [
+            'only' => 'create'
         ]);
     }
+
     public function index()
     {
         $users = User::paginate(10);
-        return view('users.index',compact('users'));
+        return view('users.index', compact('users'));
     }
 
 
@@ -34,7 +35,10 @@ class UsersController extends Controller
 
     public function show(User $user)
     {
-        return view('users.show', compact('user'));
+        $statuses = $user->statuses()
+            ->orderBy('created_at','desc')
+            ->paginate(30);
+        return view('users.show', compact('user','statuses'));
     }
 
     public function edit(User $user)
@@ -56,25 +60,25 @@ class UsersController extends Controller
             'password' => bcrypt($request->password),
         ]);
         $this->sendEmailConfirmationTo($user);
-        session()->flash('success','邮件已经成功发送，请查看您的邮箱');
+        session()->flash('success', '邮件已经成功发送，请查看您的邮箱');
         return redirect('/');
     }
 
-    public function update(User $user ,Request $request)
+    public function update(User $user, Request $request)
     {
         $this->authorize('update', $user);
-        $this->validate($request,[
-            'name'=> 'required|max:50',
-            'password'=>'nullable|confirmed'
+        $this->validate($request, [
+            'name'     => 'required|max:50',
+            'password' => 'nullable|confirmed'
         ]);
         $data = [];
         $data['name'] = $request->name;
-        if ($request->password){
+        if ($request->password) {
             $data['password'] = bcrypt($request->password);
         }
         $user->update($data);
-        session()->flash('success','信息修成功～');
-        return redirect()->route('users.edit',$user->id);
+        session()->flash('success', '信息修成功～');
+        return redirect()->route('users.edit', $user->id);
     }
 
     public function destroy(User $user)
@@ -99,15 +103,15 @@ class UsersController extends Controller
 
     public function confirmEmail($token)
     {
-        $user = User::where('activation_token',$token)->firstOrFail();
+        $user = User::where('activation_token', $token)->firstOrFail();
 
         $user->activated = true;
         $user->activation_token = null;
         $user->save();
 
         Auth::login($user);
-        session()->flash('success','恭喜您，激活成功');
-        return redirect()->route('users.show',[$user]);
+        session()->flash('success', '恭喜您，激活成功');
+        return redirect()->route('users.show', [$user]);
     }
 
 }
