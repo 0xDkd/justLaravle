@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use App\Notifications\ResetPassword;
+use Illuminate\Support\Facades\Auth;
 
 class User extends Authenticatable
 {
@@ -61,8 +62,71 @@ class User extends Authenticatable
 
     public function feed()
     {
-        return $this->statuses()
-                    ->orderBy('created_at','desc');
+        $user_ids = Auth::user()->followings->pluck('id')->toArray();
+        array_push($user_ids,Auth::user()->id);
+        return Status::whereIn('user_id',$user_ids)
+                        ->with('user')
+                        ->orderBy('created_at','desc');
     }
+
+
+    /**
+     * 用户粉丝表
+     */
+
+    /**
+     * @desc 通过某个用户来查询出他的粉丝是谁
+     * //我们可以通过$user->followers 来获取粉丝的信息
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function followers()
+    {
+        return $this->belongsToMany(User::Class,'followers','user_id','follower_id');
+    }
+
+    /**
+     * @desc 通过关注的用户id来获取这个用户的信息
+     * 我们可以通过$user->followings 来获取关注用户的信息
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function followings()
+    {
+        return $this->belongsToMany(User::Class,'followers','follower_id','user_id');
+    }
+
+    /**
+     * @desc 关注用户动作，使用followings()->sync($user_ids,false)进行数据库表的操作
+     * @param $user_ids
+     */
+    public function follow($user_ids)
+    {
+        if (!is_array($user_ids)){
+            $user_ids = compact('user_ids');
+        }
+        $this->followings()->sync($user_ids,false);
+    }
+
+    /**
+     * @desc 取消关注动作,使用following()->detach($user_ids)
+     * @param $user_ids
+     */
+    public function unfollow($user_ids)
+    {
+        if (! is_array($user_ids)){
+            $user_ids = compact('user_ids');
+        }
+        $this->followings()->detach($user_ids);
+    }
+    /**
+     * @desc 判断当前登录的的用户是否已经关注来某些用户
+     * @param $user_ids
+     * @return mixed
+     */
+    public function isFollowing($user_ids)
+    {
+        return $this->followings->contains($user_ids);
+    }
+
+
 
 }
